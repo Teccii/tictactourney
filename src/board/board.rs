@@ -26,7 +26,7 @@ impl TicTacToe {
     }
 
     #[inline]
-    pub fn terminal_state(&self) -> Option<TerminalState> {
+    pub fn terminal(&self) -> Option<TerminalState> {
         const TERMINAL_CHECKS: &[u16; 8] = &[
             0b111,
             0b111000,
@@ -86,9 +86,9 @@ impl Board {
 
     #[inline]
     pub fn terminal_state(&self) -> Option<TerminalState> {
-        self.large.terminal_state().or_else(|| {
+        self.large.terminal().or_else(|| {
             for i in 0..9 {
-                if self.small[i].terminal_state().is_none() {
+                if self.small[i].terminal().is_none() {
                     return None;
                 }
             }
@@ -116,10 +116,11 @@ impl Board {
         let indices = mv.indices();
         self.small[indices.0].set(self.stm, indices.1);
 
-        if let Some(TerminalState::Victory(piece)) = self.small[indices.0].terminal_state() {
+        if let Some(TerminalState::Victory(piece)) = self.small[indices.0].terminal() {
             self.large.set(piece, indices.0);
         }
 
+        self.ply += 1;
         self.prev_mv = Some(mv);
         self.stm = !self.stm;
     }

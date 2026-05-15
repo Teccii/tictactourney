@@ -23,7 +23,10 @@ impl Board {
         let mut board = Board::default();
         board.ply = ply.parse::<u8>().ok()?.max(0);
         board.prev_mv = prev_move.parse::<Square>().ok();
-        board.stm = stm.chars().next().and_then(|c| Piece::try_from(c.to_ascii_lowercase()).ok())?;
+        board.stm = stm
+            .chars()
+            .next()
+            .and_then(|c| Piece::try_from(c.to_ascii_lowercase()).ok())?;
 
         for (rank, row) in pieces.rsplit('/').enumerate() {
             let rank = Rank::try_index(rank)?;
@@ -48,7 +51,7 @@ impl Board {
         }
 
         for i in 0..9 {
-            if let Some(TerminalState::Victory(piece)) = board.small[i].terminal_state() {
+            if let Some(TerminalState::Victory(piece)) = board.small[i].terminal() {
                 board.large.set(piece, i);
             }
         }
@@ -85,6 +88,14 @@ impl Board {
             }
         }
 
-        fen + &format!(" {}", self.stm)
+        let prev_mv = if let Some(prev_mv) = self.prev_mv {
+            &format!(" {prev_mv}")
+        } else {
+            " -"
+        };
+
+        fen += &format!(" {}", self.stm);
+        fen += &format!(" {}", self.ply);
+        fen + prev_mv
     }
 }
