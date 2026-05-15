@@ -42,7 +42,7 @@ impl Board {
         let mut moves = MoveList::new();
         if let Some(mv) = self.prev_mv {
             let index = mv.indices().1;
-            if self.small[index].terminal().is_none() {
+            if self.small[index].terminal_state().is_none() {
                 for &sq in Square::ALL {
                     if sq.indices().0 == index && self.piece_on(sq).is_none() {
                         moves.push(sq);
@@ -53,7 +53,7 @@ impl Board {
             }
         }
 
-        let valid = self.small.map(|ttt| ttt.terminal().is_none());
+        let valid = self.small.map(|ttt| ttt.terminal_state().is_none());
         for &sq in Square::ALL {
             let index = sq.indices().0;
             if valid[index] && self.piece_on(sq).is_none() {
@@ -72,11 +72,11 @@ impl Board {
 
         if let Some(prev_mv) = self.prev_mv {
             let index = prev_mv.indices().1;
-            if self.small[index].terminal().is_none() {
+            if self.small[index].terminal_state().is_none() {
                 return mv.indices().0 == index && self.piece_on(mv).is_none();
             }
         }
 
-        self.small[mv.indices().0].terminal().is_none() && self.piece_on(mv).is_none()
+        self.small[mv.indices().0].terminal_state().is_none() && self.piece_on(mv).is_none()
     }
 }

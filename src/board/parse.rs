@@ -51,7 +51,7 @@ impl Board {
         }
 
         for i in 0..9 {
-            if let Some(TerminalState::Victory(piece)) = board.small[i].terminal() {
+            if let Some(TerminalState::Victory(piece)) = board.small[i].terminal_state() {
                 board.large.set(piece, i);
             }
         }

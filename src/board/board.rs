@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use crate::types::{Piece, Square};
 use enum_map::EnumMap;
 
@@ -26,7 +27,7 @@ impl TicTacToe {
     }
 
     #[inline]
-    pub fn terminal(&self) -> Option<TerminalState> {
+    pub fn terminal_state(&self) -> Option<TerminalState> {
         const TERMINAL_CHECKS: &[u16; 8] = &[
             0b111,
             0b111000,
@@ -86,14 +87,28 @@ impl Board {
 
     #[inline]
     pub fn terminal_state(&self) -> Option<TerminalState> {
-        self.large.terminal().or_else(|| {
+        self.large.terminal_state().or_else(|| {
+            let mut won_boards: EnumMap<Piece, usize> = EnumMap::default();
+
             for i in 0..9 {
-                if self.small[i].terminal().is_none() {
+                if let Some(terminal_state) = self.small[i].terminal_state() {
+                    if let TerminalState::Victory(p) = terminal_state {
+                        won_boards[p] += 1;
+                    }
+                } else {
+                    return None;
+                }
+
+                if self.small[i].terminal_state().is_none() {
                     return None;
                 }
             }
 
-            Some(TerminalState::Draw)
+            match won_boards[Piece::X].cmp(&won_boards[Piece::O]) {
+                Ordering::Greater => Some(TerminalState::Victory(Piece::X)),
+                Ordering::Less => Some(TerminalState::Victory(Piece::O)),
+                Ordering::Equal => Some(TerminalState::Draw),
+            }
         })
     }
 
@@ -116,7 +131,7 @@ impl Board {
         let indices = mv.indices();
         self.small[indices.0].set(self.stm, indices.1);
 
-        if let Some(TerminalState::Victory(piece)) = self.small[indices.0].terminal() {
+        if let Some(TerminalState::Victory(piece)) = self.small[indices.0].terminal_state() {
             self.large.set(piece, indices.0);
         }
 
