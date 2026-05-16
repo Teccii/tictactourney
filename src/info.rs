@@ -12,52 +12,46 @@ pub struct InfoLine {
 }
 
 impl InfoLine {
-    pub fn parse(line: &str) -> anyhow::Result<InfoLine> {
+    pub fn parse(line: &str) -> Option<InfoLine> {
         let mut reader = line.split_ascii_whitespace();
 
         if reader.next().is_none_or(|l| l != "info") {
-            return Err(anyhow::anyhow!("Missing `info` token in info line"));
+            return None;
         }
 
         #[inline]
         fn parse_int<T: FromStr<Err = ParseIntError>>(
             reader: &mut SplitAsciiWhitespace,
-            token: &str,
-        ) -> anyhow::Result<T> {
-            Ok(reader
-                .next()
-                .ok_or_else(|| anyhow::anyhow!("Missing integer value for `{token}` in info line"))?
-                .parse::<T>()?)
+        ) -> Option<T> {
+            reader.next().unwrap().parse::<T>().ok()
         }
 
         let mut info_line = InfoLine::default();
         while let Some(token) = reader.next() {
             match token {
-                "depth" => info_line.depth = Some(parse_int::<u8>(&mut reader, token)?),
-                "seldepth" => info_line.seldepth = Some(parse_int::<u8>(&mut reader, token)?),
+                "depth" => info_line.depth = parse_int::<u8>(&mut reader),
+                "seldepth" => info_line.seldepth = parse_int::<u8>(&mut reader),
                 "score" => match reader.next() {
                     Some("cp") => {
-                        info_line.score = Some(Score(parse_int::<i32>(&mut reader, token)?))
+                        info_line.score = parse_int::<i32>(&mut reader).map(Score);
                     }
                     Some("mate") => {
-                        info_line.score = {
-                            let ply = parse_int::<i32>(&mut reader, token)?;
-
+                        info_line.score = parse_int::<i32>(&mut reader).map(|ply| {
                             if ply > 0 {
-                                Some(Score::mate(ply as u8))
+                                Score::mate(ply as u8)
                             } else {
-                                Some(Score::mate((-ply) as u8))
+                                Score::mated((-ply) as u8)
                             }
-                        }
+                        });
                     }
                     _ => {}
                 },
-                "time" => info_line.time = Some(parse_int::<u64>(&mut reader, token)?),
-                "nodes" => info_line.nodes = Some(parse_int::<u64>(&mut reader, token)?),
+                "time" => info_line.time = parse_int::<u64>(&mut reader),
+                "nodes" => info_line.nodes = parse_int::<u64>(&mut reader),
                 _ => {}
             }
         }
 
-        Ok(info_line)
+        Some(info_line)
     }
 }

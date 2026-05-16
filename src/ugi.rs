@@ -1,16 +1,5 @@
-use crate::{board::Board, types::Square};
+use crate::{board::Board, tourney::SearchLimit, types::Square};
 use std::fmt;
-
-#[derive(Debug, Clone)]
-pub enum SearchLimit {
-    XTime(u64),
-    OTime(u64),
-    XInc(u64),
-    OInc(u64),
-    MoveTime(u64),
-    Nodes(u64),
-    Depth(u8),
-}
 
 #[derive(Debug, Clone)]
 pub enum UgiCommand {

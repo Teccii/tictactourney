@@ -8,7 +8,7 @@ use std::{
 
 #[derive(Debug)]
 pub struct Engine {
-    child: Child,
+    _child: Child,
     stdin: ChildStdin,
     rx: Receiver<String>,
 }
@@ -38,7 +38,11 @@ impl Engine {
             }
         });
 
-        Engine { child, stdin, rx }
+        Engine {
+            _child: child,
+            stdin,
+            rx,
+        }
     }
 
     #[inline]
@@ -60,19 +64,16 @@ impl Engine {
         &mut self,
         timeout: Duration,
         pred: impl Fn(&str) -> bool,
-    ) -> (Vec<String>, String) {
+    ) -> Option<(Vec<String>, String)> {
         let start = Instant::now();
         let mut lines = Vec::new();
 
         loop {
-            let remaining = timeout
-                .checked_sub(start.elapsed())
-                .ok_or_else(|| anyhow::anyhow!("Engine Timeout"))
-                .unwrap();
-            let line = self.rx.recv_timeout(remaining).unwrap();
+            let remaining = timeout.checked_sub(start.elapsed()).unwrap();
+            let line = self.rx.recv_timeout(remaining).ok()?;
 
             if pred(&line) {
-                return (lines, line);
+                return Some((lines, line));
             } else {
                 lines.push(line);
             }
@@ -80,17 +81,14 @@ impl Engine {
     }
 
     #[inline]
-    pub fn wait_for(&mut self, timeout: Duration, pred: impl Fn(&str) -> bool) -> String {
+    pub fn wait_for(&mut self, timeout: Duration, pred: impl Fn(&str) -> bool) -> Option<String> {
         let start = Instant::now();
         loop {
-            let remaining = timeout
-                .checked_sub(start.elapsed())
-                .ok_or_else(|| anyhow::anyhow!("Engine Timeout"))
-                .unwrap();
-            let line = self.rx.recv_timeout(remaining).unwrap();
+            let remaining = timeout.checked_sub(start.elapsed()).unwrap();
+            let line = self.rx.recv_timeout(remaining).ok()?;
 
             if pred(&line) {
-                return line;
+                return Some(line);
             }
         }
     }

@@ -71,6 +71,11 @@ impl Game {
     }
 
     #[inline]
+    pub fn board(&self) -> &Board {
+        &self.current
+    }
+
+    #[inline]
     pub fn pos_cmd(&self) -> UgiCommand {
         UgiCommand::Position {
             board: self.startpos,

@@ -1,6 +1,6 @@
-use std::cmp::Ordering;
 use crate::types::{Piece, Square};
 use enum_map::EnumMap;
+use std::cmp::Ordering;
 
 /*----------------------------------------------------------------*/
 

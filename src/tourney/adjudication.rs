@@ -1,5 +1,4 @@
-use crate::score::Score;
-use crate::types::Piece;
+use crate::{score::Score, types::Piece};
 use enum_map::EnumMap;
 
 #[derive(Debug, Copy, Clone)]
